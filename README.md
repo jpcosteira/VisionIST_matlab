@@ -11,8 +11,9 @@ vsProbe.m  vsReset.m      reachability; clear a box or one session
 vsHost.m   vsSet.m        small helpers
 
 vsClip.m       vsD4rt.m       vsFeatures.m   vsLangSam.m
-vsLightglue.m  vsMoge.m       vsOpencv.m     vsSbert.m
-vsTapnext.m    vsUnimatch.m   vsVggt.m       vsYolo.m     one per box
+vsLightglue.m  vsMoge.m       vsOpenClip.m   vsOpencv.m
+vsSbert.m      vsTapnext.m    vsUnimatch.m   vsVggt.m
+vsYolo.m                                     one per box
 
 vsTrackStream.m           stream frames through lightglue, collect matches
 vsObservation.m           match edges -> tracks -> observation matrix
@@ -83,9 +84,9 @@ cfg = vsConfig('ports', "generated");   % VisionIST_Library's make_fleet.py,
                                         % which assigns ports in NAME order
 ```
 
-`d4rt` sits at 9072 under `legacy` — appended, so no existing port moves.
-Under `generated` it lands second (alphabetically after `clip`) and shifts
-everything after it. **The fleet you are running is the authority**: its
+`d4rt` sits at 9072 and `open_clip` at 9073 under `legacy` — appended, so no
+existing port moves. Under `generated` they land alphabetically (`d4rt`
+second, `open_clip` just before `opencv`) and shift everything after them. **The fleet you are running is the authority**: its
 `docker-compose.yml` has the host ports and its `data/fleet.json` the
 service-name addresses. Override any single one afterwards:
 
@@ -117,4 +118,5 @@ timestep rather than refusing, so you get a confident wrong answer.
 
 Python with `visionist-client`, `numpy`, `scipy` — plus `torch` for the boxes
 that declare the torch codec (`clip`, `tapnext`, `textEmbedding`, `vggt`).
+`open_clip` uses the numpy codec, so it does not need torch.
 MATLAB with Image Processing Toolbox for the walkthrough's plotting.
