@@ -1,0 +1,1 @@
+{"opencv":{"command":"match","parameters":{"feature_extractor":"SIFT","max_keypoints":4000}}}

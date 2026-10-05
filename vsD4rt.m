@@ -1,0 +1,73 @@
+function [out, report] = vsD4rt(cfg, varargin)
+%VSSBERT Sentence-BERT text embeddings (the textEmbedding box).
+%   OUT = VSSBERT(CFG, 'texts', STRINGS) embeds each string and returns the
+%   pairwise similarity matrix.
+%
+%   The box's config section is "sbert", not "textEmbedding" - the directory
+%   name and the section name differ for this one box.
+%
+%   Name/value
+%     'texts'    string array of sentences (required)
+%     'command'  omit to encode, or "reset"
+%
+%   OUT fields
+%     embeddings    num_texts x 384 (all-MiniLM-L6-v2, fixed)
+%     similarities  num_texts x num_texts pairwise cosine similarity
+%
+%   Decoded over the torch codec, so the Python side needs torch installed.
+%
+%   Example
+%     out = vsSbert(cfg, 'texts', ["a dog runs" "a puppy sprints" "tax law"]);
+%     imagesc(out.similarities); colorbar;
+%
+%   See also VSCLIP.
+
+p = inputParser;
+p.FunctionName = 'vsD4rt';
+addParameter(p, 'video', string.empty);
+addParameter(p,"point_grid_size",64)
+addParameter(p, 'command', "track");
+addParameter(p, 'name', "d4rt");
+parse(p, varargin{:});
+a = p.Results;
+
+video = string(a.video);
+command = string(a.command);
+if command ~= "reset" && isempty(video)
+    error("visionist:d4rt", "'video' is required");
+end
+
+section = struct();
+if strlength(command) > 0
+    section.command = command;
+end
+
+params=struct();
+params=vsSet(params,"point_grid_size",a.point_grid_size)
+
+io = struct('name', string(a.name));
+if ~isempty(video); io.files.video = video; end
+
+[out, report] = vsRun(cfg, "d4rt", section, io);
+end
+
+
+
+{
+    "d4rt": {
+    "command": "track",          // track | reconstruct | cameras | reset
+    "parameters": {
+    "grid_size": 32,           // track: uv grid when no points are given
+    "t_src": 0,                // track: frame the query pixels come from
+    "point_grid_size": 64,     // reconstruct: grid side
+    "max_points": 4096,        // reconstruct: cap after gridding
+    "camera_grid_size": 16,    // cameras: grid for the fits
+    "intrinsics": true,        // cameras
+    "extrinsics": true,        // cameras
+    "chunk_size": 4096,        // queries per decoder call
+    "frame_step": 1,
+    "max_frames": 48,
+    "device": "cuda"
+    }
+    }
+    }
