@@ -1,0 +1,8 @@
+.DS_Store
+*.asv
+*.m~
+slprj/
+
+# run outputs written by vsRun / the walkthrough
+visionist_out/
+__pycache__/

@@ -10,9 +10,10 @@ vsRun.m                   the only function that launches Python
 vsProbe.m  vsReset.m      reachability; clear a box or one session
 vsHost.m   vsSet.m        small helpers
 
-vsClip.m      vsFeatures.m   vsLangSam.m    vsLightglue.m
-vsMoge.m      vsOpencv.m     vsSbert.m      vsTapnext.m
-vsUnimatch.m  vsVggt.m       vsYolo.m       one function per box
+vsClip.m      vsD4rt.m       vsFeatures.m   vsLangSam.m
+vsLightglue.m vsMoge.m       vsOpencv.m     vsSbert.m
+vsTapnext.m   vsUnimatch.m   vsVggt.m       vsYolo.m
+                                            one function per box
 
 vsTrackStream.m           stream frames through lightglue, collect matches
 vsObservation.m           match edges -> tracks -> observation matrix
