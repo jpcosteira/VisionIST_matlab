@@ -12,6 +12,7 @@ function cfg = vsConfig(varargin)
 %     workdir     where .mat results, request JSON and binary assets land
 %     session_id  default session for the stateful boxes
 %     hosts       struct of box key -> "host:port"
+%     ports       which port convention to build hosts from (see below)
 %     timeout     per-request seconds
 %     verbose     print each command before running it
 %
@@ -30,6 +31,8 @@ addParameter(p, 'session_id', "matlab");
 addParameter(p, 'timeout', 1800);
 addParameter(p, 'verbose', true);
 addParameter(p, 'hostPrefix', "localhost");
+addParameter(p, 'ports', "legacy");     % "legacy" | "generated" - see below
+addParameter(p, 'basePort', 9061);      % only used by "generated"
 parse(p, varargin{:});
 a = p.Results;
 
@@ -56,21 +59,51 @@ if ~isfolder(cfg.workdir)
     mkdir(cfg.workdir);
 end
 
-% Fleet port map (fleet/docker-compose.yml maps each box's 8061 to these).
+% Fleet port map. There are two conventions in circulation and they do NOT
+% agree, so 'ports' picks one:
+%
+%   "legacy"     (default) the hand-written fleet/docker-compose.yml of the
+%                original VisionIST repo, in the order its services were
+%                declared. d4rt was added afterwards, at the next free port.
+%   "generated"  a fleet produced by VisionIST_Library's tools/make_fleet.py,
+%                which assigns ports in BOX-NAME order from base. Adding a box
+%                therefore shifts every port after it alphabetically.
+%
+% Whichever you use, the fleet you are actually running is the authority:
+% its docker-compose.yml has the host ports, and its data/fleet.json the
+% service-name addresses. Override any single one afterwards:
+%
+%     cfg = vsConfig('ports', "generated");
+%     cfg.hosts.d4rt = "ifetch.isr.tecnico.ulisboa.pt:9062";
+
 h = string(a.hostPrefix);
-cfg.hosts = struct( ...
-    'clip',       h + ":9061", ...
-    'sbert',      h + ":9062", ...   % the textEmbedding box
-    'tapnext',    h + ":9063", ...
-    'lang_sam',   h + ":9064", ...   % the lang_segm box
-    'opencv',     h + ":9065", ...
-    'vggt',       h + ":9066", ...
-    'moge',       h + ":9067", ...
-    'yolo',       h + ":9068", ...
-    'lightglue',  h + ":9069", ...
-    'unimatch',   h + ":9070", ...
-    'features',   h + ":9071", ...
-    'd4rt',       h + ":9072");
+names = ["clip" "d4rt" "features" "lang_sam" "lightglue" "moge" ...
+         "opencv" "sbert" "tapnext" "unimatch" "vggt" "yolo"];
+
+cfg.hosts = struct();
+if string(a.ports) == "generated"
+    % Name order from base, exactly as make_fleet.py assigns them.
+    for k = 1:numel(names)
+        cfg.hosts.(names(k)) = h + ":" + string(a.basePort + k - 1);
+    end
+else
+    legacy = struct( ...
+        'clip',       9061, ...
+        'sbert',      9062, ...   % the textEmbedding box
+        'tapnext',    9063, ...
+        'lang_sam',   9064, ...   % the lang_segm box
+        'opencv',     9065, ...
+        'vggt',       9066, ...
+        'moge',       9067, ...
+        'yolo',       9068, ...
+        'lightglue',  9069, ...
+        'unimatch',   9070, ...
+        'features',   9071, ...
+        'd4rt',       9072);      % added after the others, so it goes last
+    for k = 1:numel(names)
+        cfg.hosts.(names(k)) = h + ":" + string(legacy.(names(k)));
+    end
+end
 
 if ~isfile(cfg.runner)
     warning("vsConfig:noRunner", ...

@@ -33,8 +33,7 @@ repo = string(fullfile(pwd, "VisionIST-PIV"));   % <- adjust if it lives elsewhe
 
 % The original notebook uses ../cozinha.mp4, which is not in the repo (*.mp4
 % is gitignored); apple.mp4 ships with the tapnext box.
-%video = fullfile(repo, "/Users/jpc/Downloads/ssofia.mp4");
-video = "/Users/jpc/Downloads/ssofia.mp4";
+video = fullfile(repo, "cozinha.mp4");
 if ~isfile(video)
     video = fullfile(repo, "images", "tapnext_tracker", "test", "apple.mp4");
 end
@@ -86,9 +85,8 @@ end
 %% 3. TAPNext - point tracking and the observation matrix
 % observation_matrix is the Tomasi-Kanade P matrix: 2F rows (x and y per
 % frame) by one column per tracked point.
-cfg.hosts.tapnext="sipgpu1.isrnet:9063";
-cfg.session_id="lixo";
-tap = vsTapnext(cfg, 'video', video, 'grid_size', 64);
+
+tap = vsTapnext(cfg, 'video', video, 'grid_size', 32);
 
 P = double(tap.observation_matrix);
 fprintf("tracks %s | visibles %s | P %s\n", mat2str(size(tap.tracks)), ...
@@ -270,16 +268,3 @@ end
 % tracks and the lightglue stream window. Re-running section 2 or 3 with the
 % same id CONTINUES that session - tapnext's reply covers every frame the
 % session has seen, not just this call's. Section 8, or a new id, starts clean.
-
-%% VGGT
-cfg.hosts.vvg="sipgpu1.isrnet:9066"
-
-res = b.run(
-data={"images": ["frame_00.jpg", "frame_01.jpg", "frame_02.jpg"]},
-config={"vggt": {"command": "reconstruct",
-    "parameters": {"conf_threshold": 30}}},
-)
-print(res.config)                    # {"vggt": {"status": "done", ...}}
-    print(res.world_points.shape)        # torch tensors, decoded via the declared codec
-    with open("scene.glb", "wb") as f:
-    f.write(res.glb_file)            # raw bytes (identity codec)

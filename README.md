@@ -10,10 +10,9 @@ vsRun.m                   the only function that launches Python
 vsProbe.m  vsReset.m      reachability; clear a box or one session
 vsHost.m   vsSet.m        small helpers
 
-vsClip.m      vsD4rt.m       vsFeatures.m   vsLangSam.m
-vsLightglue.m vsMoge.m       vsOpencv.m     vsSbert.m
-vsTapnext.m   vsUnimatch.m   vsVggt.m       vsYolo.m
-                                            one function per box
+vsClip.m       vsD4rt.m       vsFeatures.m   vsLangSam.m
+vsLightglue.m  vsMoge.m       vsOpencv.m     vsSbert.m
+vsTapnext.m    vsUnimatch.m   vsVggt.m       vsYolo.m     one per box
 
 vsTrackStream.m           stream frames through lightglue, collect matches
 vsObservation.m           match edges -> tracks -> observation matrix
@@ -72,7 +71,29 @@ Copy `vsSbert.m` — the shortest one — change the section name, the parameter
 and the documentation, and add the address to `cfg.hosts` in `vsConfig.m`.
 Nothing on the Python side changes.
 
-## Two things that bite
+## Ports
+
+`vsConfig` builds `cfg.hosts` from one of two conventions, because two are in
+circulation and they do not agree:
+
+```matlab
+cfg = vsConfig();                       % "legacy": the hand-written
+                                        % fleet/docker-compose.yml order
+cfg = vsConfig('ports', "generated");   % VisionIST_Library's make_fleet.py,
+                                        % which assigns ports in NAME order
+```
+
+`d4rt` sits at 9072 under `legacy` — appended, so no existing port moves.
+Under `generated` it lands second (alphabetically after `clip`) and shifts
+everything after it. **The fleet you are running is the authority**: its
+`docker-compose.yml` has the host ports and its `data/fleet.json` the
+service-name addresses. Override any single one afterwards:
+
+```matlab
+cfg.hosts.d4rt = "ifetch.isr.tecnico.ulisboa.pt:9072";
+```
+
+## Three things that bite
 
 **Indexing.** Arrays arrive exactly as the box produced them, so anything that
 is an *index into another array* is 0-based and needs a `+1`. That is
@@ -85,6 +106,12 @@ tracks and the `lightglue` stream window. Re-calling with the same id
 seen, not just the ones in your call. `vsReset(cfg, box, id)` starts clean —
 and it knows the id goes at the top of the section for `yolo` and `tapnext`
 but inside `parameters` for `lightglue`.
+
+**Scale.** `vsD4rt` and `vsVggt` return geometry that is *up to scale*, not
+metric — ratios and shapes mean something, absolute distances do not. Only
+`vsMoge` gives metric depth. And `vsD4rt` has a hard clip length (48 frames
+for the default checkpoint): ask about a later frame and upstream clamps the
+timestep rather than refusing, so you get a confident wrong answer.
 
 ## Requirements
 
