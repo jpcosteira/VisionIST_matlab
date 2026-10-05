@@ -64,7 +64,8 @@ end
 %
 %   "legacy"     (default) the hand-written fleet/docker-compose.yml of the
 %                original VisionIST repo, in the order its services were
-%                declared. d4rt was added afterwards, at the next free port.
+%                declared. d4rt and open_clip were added afterwards, each at
+%                the next free port.
 %   "generated"  a fleet produced by VisionIST_Library's tools/make_fleet.py,
 %                which assigns ports in BOX-NAME order from base. Adding a box
 %                therefore shifts every port after it alphabetically.
@@ -78,7 +79,7 @@ end
 
 h = string(a.hostPrefix);
 names = ["clip" "d4rt" "features" "lang_sam" "lightglue" "moge" ...
-         "opencv" "sbert" "tapnext" "unimatch" "vggt" "yolo"];
+         "open_clip" "opencv" "sbert" "tapnext" "unimatch" "vggt" "yolo"];
 
 cfg.hosts = struct();
 if string(a.ports) == "generated"
@@ -99,7 +100,8 @@ else
         'lightglue',  9069, ...
         'unimatch',   9070, ...
         'features',   9071, ...
-        'd4rt',       9072);      % added after the others, so it goes last
+        'd4rt',       9072, ...   % added after the others, so it goes last
+        'open_clip',  9073);      % ... and so does this one
     for k = 1:numel(names)
         cfg.hosts.(names(k)) = h + ":" + string(legacy.(names(k)));
     end
