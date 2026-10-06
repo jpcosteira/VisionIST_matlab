@@ -1,6 +1,6 @@
-# VisionIST from MATLAB
+# MATLAB for VisionIST 
 
-A MATLAB client for the box fleet. All box knowledge lives here, in MATLAB;
+A MATLAB client for the [VisionIST](https://github.com/sipg-isr/VisionIST_Library) fleet. All box knowledge lives here, in MATLAB;
 the Python side is one generic bridge that knows no box.
 
 ```
